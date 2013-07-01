@@ -45,3 +45,6 @@ if isfield(annotation, 'object')
         end
     end
 end
+
+annotation.imagesize.nrows = nrows;
+annotation.imagesize.ncols = ncols;

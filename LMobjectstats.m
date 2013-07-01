@@ -51,7 +51,7 @@ for i = 1:Nimages
                 area = polyarea(X,Y); % ignores intersections
                 
                 instancecounts(ndx(n),i) = instancecounts(ndx(n),i)+1;
-                areacounts(ndx(n),i) = areacounts(ndx(n),i) + area/nrows/ncols;
+                areacounts(ndx(n),i) = full(areacounts(ndx(n),i)) + area/nrows/ncols;
                 minarea(ndx(n),i) = min(minarea(ndx(n),i), area/nrows/ncols);
                 %areacounts(ndx(n),i) = areacounts(ndx(n),i) + sum(sum(mask(:,:,n), 1),2)/nrows/ncols;
             end
