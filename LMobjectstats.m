@@ -28,26 +28,31 @@ minarea = ones(Nobjects, Nimages);
 
 for i = 1:Nimages
     disp(Nimages-i)
-    if isfield(D(i).annotation, 'object')
-        objectsinimage = {D(i).annotation.object.name};
+    ann = D(i).annotation;
+    if isfield(ann, 'object')
+        objectsinimage = {ann.object.name};
         [~, ndx] = ismember(strtrim(lower(objectsinimage)),lower(objectnames));
         if (nargout == 2 || nargout == 0 ) && nargin == 1
             for n = 1:length(ndx)
                 instancecounts(ndx(n),i) = instancecounts(ndx(n),i)+1;
             end
         else
-            a = imfinfo(fullfile(HOMEIMAGES, D(i).annotation.folder, D(i).annotation.filename));
-            nrows = a.Width;
-            ncols = a.Height;
-            nPixelsInv = 1 / (nrows * ncols);
+            if isfield(ann, 'imagesize')
+                nrows = str2double(ann.imagesize.nrows);
+                ncols = str2double(ann.imagesize.ncols);
+            else
+                a = imfinfo(fullfile(HOMEIMAGES, ann.folder, ann.filename));
+                nrows = a.Width;
+                ncols = a.Height;
+            end
             
             for n = 1:length(ndx)
-                [X,Y] = getLMpolygon(D(i).annotation.object(n).polygon);
+                [X,Y] = getLMpolygon(ann.object(n).polygon);
                 area = polyarea(X,Y); % ignores intersections
                 
                 instancecounts(ndx(n),i) = instancecounts(ndx(n),i)+1;
-                areacounts(ndx(n),i) = full(areacounts(ndx(n),i)) + area*nPixelsInv;
-                minarea(ndx(n),i) = min(minarea(ndx(n),i), area*nPixelsInv);
+                areacounts(ndx(n),i) = full(areacounts(ndx(n),i)) + area/nrows/ncols;
+                minarea(ndx(n),i) = min(minarea(ndx(n),i), area/nrows/ncols);
             end
         end
     end
