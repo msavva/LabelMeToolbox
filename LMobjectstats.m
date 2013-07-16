@@ -29,31 +29,25 @@ minarea = ones(Nobjects, Nimages);
 for i = 1:Nimages
     disp(Nimages-i)
     if isfield(D(i).annotation, 'object')
+        objectsinimage = {D(i).annotation.object.name};
+        [~, ndx] = ismember(strtrim(lower(objectsinimage)),lower(objectnames));
         if (nargout == 2 || nargout == 0 ) && nargin == 1
-            objectsinimage = {D(i).annotation.object.name};
-            
-            [TF, ndx] = ismember(strtrim(lower(objectsinimage)),lower(objectnames));
             for n = 1:length(ndx)
                 instancecounts(ndx(n),i) = instancecounts(ndx(n),i)+1;
             end
         else
-            %[mask, objectsinimage] = LMobjectmask(D(i).annotation, HOMEIMAGES);
-            objectsinimage = {D(i).annotation.object.name};
-            %img = LMimread(D, i ,HOMEIMAGES);
             a = imfinfo(fullfile(HOMEIMAGES, D(i).annotation.folder, D(i).annotation.filename));
             nrows = a.Width;
             ncols = a.Height;
-            %[nrows ncols no] = size(img);
+            nPixelsInv = 1 / (nrows * ncols);
             
-            [TF, ndx] = ismember(strtrim(lower(objectsinimage)),lower(objectnames));
             for n = 1:length(ndx)
                 [X,Y] = getLMpolygon(D(i).annotation.object(n).polygon);
                 area = polyarea(X,Y); % ignores intersections
                 
                 instancecounts(ndx(n),i) = instancecounts(ndx(n),i)+1;
-                areacounts(ndx(n),i) = full(areacounts(ndx(n),i)) + area/nrows/ncols;
-                minarea(ndx(n),i) = min(minarea(ndx(n),i), area/nrows/ncols);
-                %areacounts(ndx(n),i) = areacounts(ndx(n),i) + sum(sum(mask(:,:,n), 1),2)/nrows/ncols;
+                areacounts(ndx(n),i) = full(areacounts(ndx(n),i)) + area*nPixelsInv;
+                minarea(ndx(n),i) = min(minarea(ndx(n),i), area*nPixelsInv);
             end
         end
     end
@@ -98,11 +92,6 @@ if nargout == 0
         objectnames{o}
         scenenames{k} = sprintf('%s,',objectnames{o});
     end
-    
-end
-
-return
-
 
     subplot(223)
     % histogram of most frequent scenes
@@ -121,13 +110,15 @@ return
     axis('tight')
     title('number of scenes')
     
-    
-    % Visualize examples of most common scenes
-    for q = 1:10
-        f = find(j==ju(ndx(q)));
-        f = f(1:min(36,length(f)));
-        LMdbshowscenes(D(valid(f)), HOMEIMAGES)
-    end
+%     % Visualize examples of most common scenes
+%     for q = 1:10
+%         f = find(j==ju(ndx(q)));
+%         f = f(1:min(36,length(f)));
+%         LMdbshowscenes(D(valid(f)), HOMEIMAGES)
+%     end
+
+end
+
 end
 
 
